@@ -17,6 +17,7 @@ limitations under the License.
 package noderestriction
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -184,10 +185,10 @@ func (c *nodePlugin) admitPod(nodeName string, a admission.Attributes) error {
 
 	case admission.Delete:
 		// get the existing pod from the server cache
-		existingPod, err := c.podsGetter.Pods(a.GetNamespace()).Get(a.GetName(), v1.GetOptions{ResourceVersion: "0"})
+		existingPod, err := c.podsGetter.Pods(a.GetNamespace()).Get(context.TODO(),a.GetName(), v1.GetOptions{ResourceVersion: "0"})
 		if errors.IsNotFound(err) {
 			// wasn't found in the server cache, do a live lookup before forbidding
-			existingPod, err = c.podsGetter.Pods(a.GetNamespace()).Get(a.GetName(), v1.GetOptions{})
+			existingPod, err = c.podsGetter.Pods(a.GetNamespace()).Get(context.TODO(),a.GetName(), v1.GetOptions{})
 			if errors.IsNotFound(err) {
 				return err
 			}
@@ -242,10 +243,10 @@ func (c *nodePlugin) admitPodEviction(nodeName string, a admission.Attributes) e
 			podName = eviction.Name
 		}
 		// get the existing pod from the server cache
-		existingPod, err := c.podsGetter.Pods(a.GetNamespace()).Get(podName, v1.GetOptions{ResourceVersion: "0"})
+		existingPod, err := c.podsGetter.Pods(a.GetNamespace()).Get(context.TODO(),podName, v1.GetOptions{ResourceVersion: "0"})
 		if errors.IsNotFound(err) {
 			// wasn't found in the server cache, do a live lookup before forbidding
-			existingPod, err = c.podsGetter.Pods(a.GetNamespace()).Get(podName, v1.GetOptions{})
+			existingPod, err = c.podsGetter.Pods(a.GetNamespace()).Get(context.TODO(),podName, v1.GetOptions{})
 			if errors.IsNotFound(err) {
 				return err
 			}
@@ -376,7 +377,7 @@ func (c *nodePlugin) admitServiceAccount(nodeName string, a admission.Attributes
 	if ref.UID == "" {
 		return admission.NewForbidden(a, fmt.Errorf("node requested token with a pod binding without a uid"))
 	}
-	pod, err := c.podsGetter.Pods(a.GetNamespace()).Get(ref.Name, v1.GetOptions{})
+	pod, err := c.podsGetter.Pods(a.GetNamespace()).Get(context.TODO(),ref.Name, v1.GetOptions{})
 	if errors.IsNotFound(err) {
 		return err
 	}

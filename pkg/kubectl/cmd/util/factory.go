@@ -17,6 +17,7 @@ limitations under the License.
 package util
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strconv"
@@ -242,7 +243,7 @@ func NewFactory(optionalClientConfig clientcmd.ClientConfig) Factory {
 func GetFirstPod(client coreclient.PodsGetter, namespace string, selector string, timeout time.Duration, sortBy func([]*v1.Pod) sort.Interface) (*api.Pod, int, error) {
 	options := metav1.ListOptions{LabelSelector: selector}
 
-	podList, err := client.Pods(namespace).List(options)
+	podList, err := client.Pods(namespace).List(context.TODO(),options)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -262,7 +263,7 @@ func GetFirstPod(client coreclient.PodsGetter, namespace string, selector string
 
 	// Watch until we observe a pod
 	options.ResourceVersion = podList.ResourceVersion
-	w, err := client.Pods(namespace).Watch(options)
+	w, err := client.Pods(namespace).Watch(context.TODO(),options)
 	if err != nil {
 		return nil, 0, err
 	}
